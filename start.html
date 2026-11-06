@@ -21,8 +21,8 @@
     <script>try{var t=localStorage.getItem('dotgui_theme')||'fall';if(t!=='classic')document.body.dataset.theme=t;}catch(e){}</script>
     <div class="ticker">
       <div class="ticker-track">
-        <span>We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.</span>
-        <span aria-hidden="true">We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.</span>
+        <span>We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.</span>
+        <span aria-hidden="true">We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.&emsp;&emsp;We are currently adding new websites and games every day.</span>
       </div>
     </div>
     <nav>
@@ -46,6 +46,8 @@
       </button>
     </nav>
   <style>
+    .ticker-track { animation: ticker-scroll 60s linear infinite; }
+    .ticker:hover .ticker-track { animation-play-state: running; }
     #homestuff { display:flex; flex-direction:column; align-items:center; gap:20px; text-align:center; min-height:60vh; justify-content:center; }
     .site-logo-img { width:250px; }
     .site-logo-text { display:none; font-family:Outfit,sans-serif; font-size:64px; font-weight:800; letter-spacing:2px; color:#063a5c; line-height:1; }
@@ -156,10 +158,7 @@
       <div class="button-container">
         <button onclick="navTo('https://youtube.com')"><img src="media/quick/datube.svg" alt="YouTube"></button>
         <button onclick="navTo('https://web.spotify.com')"><img src="media/quick/bigtify.svg" alt="Spotify"></button>
-        <button onclick="navTo('https://github.com')"><img src="media/quick/github.svg" alt="Github"></button>
       </div>
-      <p id="random-text" style="font-size:1.2em; margin:20px 0;"></p>
-      <p>Join our <a onclick=window.location.href="https://discord.com/invite/U8tT8AazXb">community server</a>! Make sure to star DotGUI on GitHub if you fork it!</p>
     <script>
         function navTo(url) {
             try { sessionStorage.setItem("searchQuery", url); } catch(e) {}
@@ -178,18 +177,6 @@
             window.location.href = "search.html?q=" + encodeURIComponent(q);
         }
         document.getElementById("bar").addEventListener("keydown", function(e){ if(e.key==="Enter") nav(); });
-        const texts = [
-            '"Work on DotGUI or play Roblox?" - me, probably',
-            "Did you know? DotGUI would've been 'Zenithub Rework', rebrand seemed cool. So much for that...",
-            "If I remade DotGUI, search would be day one fr",
-            "Militant is the best TDS starter, change my mind",
-            "Who needs announcements when you got these?",
-            "Stop using the request form for problems fr",
-            "Like 3 people still check Discord, just join it",
-            "Too many ideas, not enough time tbh",
-            "Wish people used the latest DotGUI, but oh well",
-        ];
-        document.getElementById("random-text").textContent = texts[Math.floor(Math.random() * texts.length)];
         (function() {
           var ov = document.getElementById('changelogOverlay');
           var btn = document.getElementById('changelogBtn');
