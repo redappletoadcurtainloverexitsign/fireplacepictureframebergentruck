@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="monetag" content="cd3f6daab1950d56cc8284e65a83b1ba">
-  <title>Launch DotGUI</title>
+  <title>Launch Nova Games</title>
 
   <script>
     (function () {
@@ -30,8 +30,8 @@
 <body>
   <div id="games">
     <main>
-      <h1>Launching DotGUI...</h1>
-      <p id="launch-status">Opening DotGUI automatically. If it does not appear, allow pop-ups and try again.</p>
+      <h1>Launching Nova Games...</h1>
+      <p id="launch-status">Opening Nova Games automatically. If it does not appear, allow pop-ups and try again.</p>
       <button class="button" id="launch-button" type="button">Launch</button>
     </main>
   </div>
@@ -44,7 +44,7 @@
 
       if (!win) {
         if (status) {
-          status.textContent = 'Popup blocked. Allow pop-ups or click the button below to open DotGUI.';
+          status.textContent = 'Popup blocked. Allow pop-ups or click the button below to open Nova Games.';
         }
         return;
       }
@@ -56,7 +56,7 @@
           <head>
             <meta charset="UTF-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-            <title>DotGUI</title>
+            <title>Nova Games</title>
             <style>
               html, body, iframe {
                 width: 100%;
@@ -68,7 +68,7 @@
             </style>
           </head>
           <body>
-            <iframe src="start.html" title="DotGUI"></iframe>
+            <iframe src="start.html" title="Nova Games"></iframe>
           </body>
         </html>
       `);
@@ -76,7 +76,7 @@
       win.focus();
 
       if (status) {
-        status.textContent = 'DotGUI is opening in a new tab.';
+        status.textContent = 'Nova Games is opening in a new tab.';
       }
     }
 
