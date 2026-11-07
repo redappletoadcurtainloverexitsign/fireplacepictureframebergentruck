@@ -510,7 +510,7 @@ body[data-theme="primordial"] .site-logo-text {
 }
 
 body[data-theme="primordial"] .site-logo-text::after {
-  content: "BlackoutGames";
+  content: "Nova Games";
   font-size: 64px;
 }
 
