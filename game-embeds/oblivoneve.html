@@ -968,7 +968,7 @@
 		if (shaderMode == 1){
 			p8_crt_effect_init(canvas);
 		}
-		else if (shaderMode == 2){
+		else if (shaderMode == 2 && typeof XbrWasm !== 'undefined'){
 			p8_xbr_effect_init(canvas);
 		}
 	}
