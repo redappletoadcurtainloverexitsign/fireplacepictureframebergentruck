@@ -662,3 +662,10 @@ body[data-theme="fall"] .ticker {
 body[data-theme="fall"] .ticker-track a {
   color: #ffa14d;
 }
+body,
+body[data-theme="dark"],
+body[data-theme="primordial"],
+body[data-theme="fall"] {
+  background-color: #000 !important;
+  background-image: none !important;
+  animation: none !important;
