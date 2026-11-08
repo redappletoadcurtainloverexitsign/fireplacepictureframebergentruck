@@ -5,6 +5,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="stylesheet" href="styles.css" />
+    <link rel="icon" type="image/png" href="favicon.png?v=2" />
     <style>
       #games { display: flex; justify-content: center; }
       #games main { text-align: center; width: 100%; max-width: 900px; margin: 0 auto; }
@@ -68,18 +69,6 @@
           </div>
         </div>
         <div class="setting-section">
-          <h2>Theme</h2>
-<p class="desc">Classic is the default look. Dark pushes it to black, Light flips it for bright rooms, Primordial is a black-and-white throwback.</p>
-
-      <select id="themePick" style="font-size:1em;padding:0.5em;">
-<option value="classic">Classic</option>
-<option value="dark">Dark</option>
-<option value="light">Light</option>
-<option value="fall">Fall</option>
-<option value="primordial">Primordial</option>
-            </select>
-          </div>
-        <div class="setting-section">
           <h2>History</h2>
           <p class="desc">Recently played row on home keeps your last 4 games. <span id="recent-count"></span></p>
           <div class="setting-row">
@@ -110,7 +99,7 @@
           function updatePreview(value) {
             var c = CLOAKS[value];
             previewTitle.textContent = c ? c.title : ORIGINAL_TITLE;
-            previewIcon.src = c ? c.icon : 'favicon.ico';
+            previewIcon.src = c ? c.icon : 'favicon.png?v=2';
           }
           function setTabCloak(value) {
             var c = CLOAKS[value];
@@ -119,7 +108,7 @@
               favicon.href = c.icon;
             } else {
               document.title = ORIGINAL_TITLE;
-              favicon.href = 'favicon.ico';
+              favicon.href = 'favicon.png?v=2';
             }
             try { localStorage.setItem('tabCloaker', value); } catch (e) {}
             updatePreview(value);
@@ -176,30 +165,11 @@
             } catch (e) {}
             tabCloaker.value = 'default';
             setTabCloak('default');
-            themePick.value = 'fall';
-            applyTheme('fall');
             panicKey.value = PANIC_DEFAULTS.key;
             panicUrl.value = PANIC_DEFAULTS.url;
             panicRedirect.checked = true;
             refreshRecentCount();
             flash('All settings reset.');
-          });
-          var themePick = document.getElementById('themePick');
-          function applyTheme(v) {
-            try {
-              if (v === 'classic') { delete document.body.dataset.theme; }
-              else { document.body.dataset.theme = v; }
-            } catch (e) {}
-          }
-          var savedTheme = 'fall';
-          try { savedTheme = localStorage.getItem('dotgui_theme') || 'fall'; } catch (e) {}
-          themePick.value = savedTheme;
-          applyTheme(savedTheme);
-          themePick.addEventListener('change', function(e) {
-            var v = e.target.value;
-            try { localStorage.setItem('dotgui_theme', v); } catch (e) {}
-            applyTheme(v);
-            flash('Theme saved.');
           });
           var saved = localStorage.getItem('tabCloaker') || 'default';
           tabCloaker.value = saved;
