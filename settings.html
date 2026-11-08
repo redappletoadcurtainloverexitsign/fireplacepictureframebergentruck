@@ -47,7 +47,6 @@
               <option value="google">Google</option>
               <option value="vocab">Vocabulary.com</option>
               <option value="canvas">Canvas</option>
-              <option value="docs">Google Docs</option>
             </select>
           </div>
           <div id="cloak-preview"><img id="preview-icon" alt=""><span id="preview-title">Settings</span></div>
@@ -76,39 +75,26 @@
           </div>
           <p id="settings-status"></p>
         </div>
+        <script src="cloak.js"></script>
         <script>
           var CLOAKS = {
             google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
             vocab: { title: 'My Learning | Vocabulary.com', icon: 'https://www.vocabulary.com/favicon.ico' },
-            canvas: { title: 'Canvas', icon: 'https://canvas.instructure.com/favicon.ico' },
-            docs: { title: 'Google Docs', icon: 'https://docs.google.com/favicon.ico' }
+            canvas: { title: 'Canvas', icon: 'https://canvas.instructure.com/favicon.ico' }
           };
           var PANIC_DEFAULTS = { key: 'k', url: 'https://classroom.google.com', redirect: true };
           var tabCloaker = document.getElementById('tabCloaker');
-          var favicon = document.querySelector("link[rel~='icon']") || (() => {
-            var link = document.createElement('link');
-            link.rel = 'icon';
-            document.head.appendChild(link);
-            return link;
-          })();
           var previewIcon = document.getElementById('preview-icon');
           var previewTitle = document.getElementById('preview-title');
-          var ORIGINAL_TITLE = document.title || 'Settings';
+          var ORIGINAL_TITLE = 'Settings | Nova Games';
           function updatePreview(value) {
             var c = CLOAKS[value];
             previewTitle.textContent = c ? c.title : ORIGINAL_TITLE;
             previewIcon.src = c ? c.icon : 'favicon.png?v=2';
           }
           function setTabCloak(value) {
-            var c = CLOAKS[value];
-            if (c) {
-              document.title = c.title;
-              favicon.href = c.icon;
-            } else {
-              document.title = ORIGINAL_TITLE;
-              favicon.href = 'favicon.png?v=2';
-            }
             try { localStorage.setItem('tabCloaker', value); } catch (e) {}
+            if (window.applyTabCloak) window.applyTabCloak(value);
             updatePreview(value);
           }
           tabCloaker.addEventListener('change', function(e) { setTabCloak(e.target.value); flash('Cloak saved.'); });
@@ -170,7 +156,8 @@
           });
           var saved = localStorage.getItem('tabCloaker') || 'default';
           tabCloaker.value = saved;
-          setTabCloak(saved);
+          if (!CLOAKS[saved]) tabCloaker.value = 'default';
+          updatePreview(tabCloaker.value);
           refreshRecentCount();
           // dotgui-panic: global panic key, guards typing
           document.addEventListener('keydown', function(e) {
