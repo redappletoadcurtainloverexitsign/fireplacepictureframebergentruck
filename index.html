@@ -14,7 +14,7 @@
     </style>
   </head>
   <body>
-    <script>try{var t=localStorage.getItem('dotgui_theme')||'fall';if(t!=='classic')document.body.dataset.theme=t;}catch(e){}</script>
+    <script>document.body.dataset.theme='fall';</script>
   <div id="main">
     <main>
       <div id="games">
@@ -63,9 +63,6 @@
       } else if (value === 'canvas') {
           document.title = 'Canvas';
           favicon.href = 'https://canvas.instructure.com/favicon.ico';
-        } else if (value === 'drive') {
-          document.title = 'Google Drive';
-          favicon.href = 'https://drive.google.com/favicon.ico';
         } else if (value === 'docs') {
           document.title = 'Google Docs';
           favicon.href = 'https://docs.google.com/favicon.ico';

@@ -23,7 +23,7 @@
     </style>
   </head>
   <body>
-    <script>try{var t=localStorage.getItem('dotgui_theme')||'fall';if(t!=='classic')document.body.dataset.theme=t;}catch(e){}</script>
+    <script>document.body.dataset.theme='fall';</script>
     <nav>
       <button type="button" class="nav-btn nav-home-btn"  onclick="location.href='start.html'">
         <img src="favicon.ico" width="40px" height="40px" alt="Home">
@@ -47,7 +47,6 @@
               <option value="google">Google</option>
               <option value="vocab">Vocabulary.com</option>
               <option value="canvas">Canvas</option>
-              <option value="drive">Google Drive</option>
               <option value="docs">Google Docs</option>
             </select>
           </div>
@@ -82,7 +81,6 @@
             google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
             vocab: { title: 'My Learning | Vocabulary.com', icon: 'https://www.vocabulary.com/favicon.ico' },
             canvas: { title: 'Canvas', icon: 'https://canvas.instructure.com/favicon.ico' },
-            drive: { title: 'Google Drive', icon: 'https://drive.google.com/favicon.ico' },
             docs: { title: 'Google Docs', icon: 'https://docs.google.com/favicon.ico' }
           };
           var PANIC_DEFAULTS = { key: 'k', url: 'https://classroom.google.com', redirect: true };
@@ -158,7 +156,6 @@
               localStorage.removeItem('tabCloaker');
               localStorage.removeItem('dotgui_recent');
               localStorage.removeItem('dotgui_favs');
-              localStorage.removeItem('dotgui_theme');
               localStorage.setItem('dotgui_panic_key', PANIC_DEFAULTS.key);
               localStorage.setItem('dotgui_panic_url', PANIC_DEFAULTS.url);
               localStorage.setItem('dotgui_panic_redirect', 'true');
