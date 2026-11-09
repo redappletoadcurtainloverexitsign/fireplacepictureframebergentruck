@@ -27,6 +27,13 @@
       setIcon(NOVA + '&t=' + Date.now());
     }
   }
+  // One-time reset: clear any cloak saved by older versions of the site (for example Google Docs).
+  try {
+    if (localStorage.getItem('tabCloakVer') !== '2') {
+      localStorage.removeItem('tabCloaker');
+      localStorage.setItem('tabCloakVer', '2');
+    }
+  } catch (e) {}
   var saved = 'default';
   try { saved = localStorage.getItem('tabCloaker') || 'default'; } catch (e) {}
   apply(saved);
