@@ -1,9 +1,21 @@
-// Google sign-in gate. Set CLIENT_ID (see below) to turn it on; empty = gate off.
+// Google sign-in gate. Empty CLIENT_ID = site locked ("being set up"). Paste the Client ID to enable sign-in.
 (function () {
   var CLIENT_ID = ''; // <-- paste your Google OAuth Web Client ID here
   var ALLOWED_EMAILS = []; // optional: e.g. ['a@gmail.com']; empty = any Google account
   var ALLOWED_DOMAINS = []; // optional: e.g. ['belenwolverines.org']; empty = any domain
-  if (!CLIENT_ID) return;
+  if (!CLIENT_ID) {
+    // No Client ID yet: keep everyone out until sign-in is set up.
+    document.documentElement.style.visibility = 'hidden';
+    var lock = function () {
+      var o = document.createElement('div');
+      o.style.cssText = 'position:fixed;inset:0;z-index:2147483647;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;text-align:center;visibility:visible';
+      o.innerHTML = '<h1 style="margin:0 0 8px">Nova Games</h1><p style="margin:0;color:#aaa">Google sign-in is being set up. Please check back soon.</p>';
+      document.body.appendChild(o);
+      document.documentElement.style.visibility = 'visible';
+    };
+    if (document.body) lock(); else document.addEventListener('DOMContentLoaded', lock);
+    return;
+  }
   var KEY = 'novaAuth';
   function ok() {
     try {
