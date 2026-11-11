@@ -6,7 +6,10 @@
   var SESSION = 'novaAuth', USERS = 'novaUsers', DAYS = 7;
   function get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
-  var a = get(SESSION);
+  // Sign-in lasts only for this browser tab/session; reopening the site asks again.
+  try { localStorage.removeItem(SESSION); } catch (e) {}
+  var a = null;
+  try { a = JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch (e) {}
   if (a && a.exp * 1000 > Date.now()) return;
   var root = document.documentElement;
   root.style.visibility = 'hidden';
@@ -16,7 +19,7 @@
     return crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pw)).then(hex);
   }
   function login(name) {
-    set(SESSION, { user: name, exp: Date.now() / 1000 + DAYS * 86400 });
+    try { sessionStorage.setItem(SESSION, JSON.stringify({ user: name, exp: Date.now() / 1000 + DAYS * 86400 })); } catch (e) {}
     location.reload();
   }
 
