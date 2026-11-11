@@ -6,7 +6,7 @@
   // Admin account: only this username + password unlocks the admin panel (stored as a salted PBKDF2 hash, not the password).
   var ADMIN_USER = 'gecko', ADMIN_SALT = 'de0b41140e6d2c8e4988b6128ed68462', ADMIN_HASH = 'bd6caf8fe087aac20b3d8b7da3b344aab354ce324ae207fee0c91be23fe8e586';
   // Supabase (free shared database). Paste the Project URL and the anon/publishable key. Empty = accounts live on each device only.
-  var SUPABASE_URL = '', SUPABASE_KEY = '';
+  var SUPABASE_URL = 'https://gnvblyqmjqasdumgtdzb.supabase.co', SUPABASE_KEY = 'sb_publishable_X7C0MaI1NjhlDRt-En-G8A_nTV8sZDV';
   var SESSION = 'novaAuth', USERS = 'novaUsers', DAYS = 7;
   // ---------- Online mode (Supabase): shared accounts, sign-in tracking, delete, lockdown ----------
   function sbMode(API, KEY) {
