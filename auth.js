@@ -3,6 +3,8 @@
   var CLIENT_ID = ''; // <-- paste your Google OAuth Web Client ID here to add the Google button
   var ALLOWED_EMAILS = []; // optional Google restriction
   var ALLOWED_DOMAINS = []; // optional Google restriction
+  // Admin account: only this username + password unlocks the admin panel (stored as a salted PBKDF2 hash, not the password).
+  var ADMIN_USER = 'gecko', ADMIN_SALT = 'de0b41140e6d2c8e4988b6128ed68462', ADMIN_HASH = 'bd6caf8fe087aac20b3d8b7da3b344aab354ce324ae207fee0c91be23fe8e586';
   var SESSION = 'novaAuth', USERS = 'novaUsers', DAYS = 7;
   function get(k) { try { return JSON.parse(localStorage.getItem(k) || 'null'); } catch (e) { return null; } }
   function set(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); return true; } catch (e) { return false; } }
@@ -10,10 +12,33 @@
   try { localStorage.removeItem(SESSION); } catch (e) {}
   var a = null;
   try { a = JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch (e) {}
-  if (a && a.exp * 1000 > Date.now()) return;
+  if (a && a.exp * 1000 > Date.now()) {
+    if (a.admin && a.user === ADMIN_USER) {
+      var addBtn = function () { adminUI(); };
+      if (document.body) addBtn(); else document.addEventListener('DOMContentLoaded', addBtn);
+    }
+    return;
+  }
   var root = document.documentElement;
   root.style.visibility = 'hidden';
 
+  function adminUI() {
+    if (document.getElementById('novaAdminBtn')) return;
+    var b = document.createElement('button');
+    b.id = 'novaAdminBtn'; b.textContent = 'Admin';
+    b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483000;padding:8px 14px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif;cursor:pointer;opacity:.85';
+    var p = document.createElement('div');
+    p.style.cssText = 'display:none;position:fixed;right:12px;bottom:56px;z-index:2147483000;width:280px;max-width:calc(100vw - 24px);padding:14px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif';
+    p.innerHTML = '<div style="font-weight:bold;margin-bottom:8px">Admin panel</div><p id="novaAdminBody" style="color:#aaa;margin:0 0 10px">Buttons coming soon.</p><button id="novaAdminOut" style="padding:8px 14px;border-radius:6px;border:0;background:#c33;color:#fff;cursor:pointer">Sign out</button>';
+    b.onclick = function () { p.style.display = p.style.display === 'none' ? 'block' : 'none'; };
+    document.body.appendChild(b); document.body.appendChild(p);
+    document.getElementById('novaAdminOut').onclick = function () { try { sessionStorage.removeItem(SESSION); } catch (e) {} location.reload(); };
+  }
+  function adminHash(pw) {
+    return crypto.subtle.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveBits']).then(function (k) {
+      return crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode(ADMIN_SALT), iterations: 200000, hash: 'SHA-256' }, k, 256);
+    }).then(hex);
+  }
   function hex(buf) { return Array.prototype.map.call(new Uint8Array(buf), function (b) { return ('0' + b.toString(16)).slice(-2); }).join(''); }
   function hash(salt, pw) {
     return crypto.subtle.digest('SHA-256', new TextEncoder().encode(salt + ':' + pw)).then(hex);
@@ -24,8 +49,8 @@
     return c;
   }
   function normCode(c) { return c.toUpperCase().replace(/[^A-Z0-9]/g, ''); }
-  function login(name) {
-    try { sessionStorage.setItem(SESSION, JSON.stringify({ user: name, exp: Date.now() / 1000 + DAYS * 86400 })); } catch (e) {}
+  function login(name, admin) {
+    try { sessionStorage.setItem(SESSION, JSON.stringify({ user: name, admin: !!admin, exp: Date.now() / 1000 + DAYS * 86400 })); } catch (e) {}
     location.reload();
   }
 
@@ -76,7 +101,7 @@
       var users = get(USERS) || {};
       if (mode === 'up') {
         if ($('nPass2').value !== pw) { msg('Passwords do not match.'); return; }
-        if (users[name]) { msg('That username is taken. Sign in instead.'); return; }
+        if (name === ADMIN_USER || users[name]) { msg('That username is taken. Sign in instead.'); return; }
         var salt = hex(crypto.getRandomValues(new Uint8Array(16)));
         var code = newCode();
         Promise.all([hash(salt, pw), hash(salt, 'rec:' + normCode(code))]).then(function (hs) {
@@ -98,6 +123,10 @@
           return hash(u2.salt, pw).then(function (ph) { u2.hash = ph; set(USERS, users); login(name); });
         });
       } else {
+        if (name === ADMIN_USER) {
+          adminHash(pw).then(function (h) { if (h === ADMIN_HASH) login(name, true); else msg('Wrong password.'); });
+          return;
+        }
         var u = users[name];
         if (!u) { msg('No account with that username on this device. Create one.'); return; }
         hash(u.salt, pw).then(function (h) { if (h === u.hash) login(name); else msg('Wrong password.'); });
