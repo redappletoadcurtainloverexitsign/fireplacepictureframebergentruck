@@ -75,7 +75,7 @@
           </div>
           <p id="settings-status"></p>
         </div>
-        <script src="auth.js?v=10"></script><script src="cloak.js"></script>
+        <script src="auth.js?v=11"></script><script src="cloak.js"></script>
         <script>
           var CLOAKS = {
             google: { title: 'Google', icon: 'https://www.google.com/favicon.ico' },
@@ -181,5 +181,21 @@
         </script>
       </main>
     </div>
-  </body>
+      <div id="account-bar" style="display:none;position:fixed;right:12px;bottom:12px;z-index:50;gap:8px;align-items:center">
+      <button class="button" id="signout-btn" type="button">Sign out</button>
+      <button class="button" id="delete-account-btn" type="button" style="background:#c0262d;border-color:#c0262d;color:#fff">Delete account</button>
+    </div>
+    <script>
+      (function () {
+        var bar = document.getElementById('account-bar');
+        function init() {
+          if (!window.novaAuth) return;
+          bar.style.display = 'flex';
+          document.getElementById('signout-btn').onclick = function () { window.novaAuth.signOut(); };
+          document.getElementById('delete-account-btn').onclick = function () { window.novaAuth.deleteAccount(); };
+        }
+        var tries = 0, t = setInterval(function () { if (window.novaAuth || ++tries > 60) { clearInterval(t); init(); } }, 250);
+      })();
+    </script>
+</body>
 </html>

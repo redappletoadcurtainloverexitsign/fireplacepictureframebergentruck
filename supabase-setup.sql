@@ -164,3 +164,25 @@ do $$ begin
     execute 'grant execute on all functions in schema public to anon';
   end if;
 end $$;
+
+-- Let a signed-in user delete their own account (asks for their password).
+create or replace function public.nova_delete_self(p_token uuid, p_pass text) returns jsonb
+language plpgsql security definer set search_path = public, extensions as $$
+declare r app_users%rowtype;
+begin
+  select u.* into r from app_sessions s join app_users u on u.username = s.username
+    where s.token = p_token and s.created_at > now() - interval '7 days';
+  if not found then return jsonb_build_object('ok', false, 'error', 'invalid'); end if;
+  if r.is_admin then return jsonb_build_object('ok', false, 'error', 'admin'); end if;
+  if r.locked_until is not null and r.locked_until > now() then return jsonb_build_object('ok', false, 'error', 'wait'); end if;
+  if r.pw_hash <> crypt(coalesce(p_pass, ''), r.pw_hash) then
+    update app_users set
+      fail_count = case when fail_count + 1 >= 5 then 0 else fail_count + 1 end,
+      locked_until = case when fail_count + 1 >= 5 then now() + interval '5 minutes' else locked_until end
+      where username = r.username;
+    return jsonb_build_object('ok', false, 'error', 'bad');
+  end if;
+  delete from app_users where username = r.username;
+  return jsonb_build_object('ok', true);
+end $$;
+grant execute on function public.nova_delete_self(uuid, text) to anon;

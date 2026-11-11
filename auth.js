@@ -98,8 +98,8 @@
 
     function adminUI() {
       var bs = 'display:block;width:100%;margin:6px 0;padding:9px;border-radius:6px;border:0;color:#fff;font-size:14px;cursor:pointer;background:#2d6cff';
-      adminBtn = el('button', 'position:fixed;right:12px;bottom:12px;z-index:2147483000;padding:8px 14px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif;cursor:pointer;opacity:.85', 'Admin');
-      adminPanel = el('div', 'display:none;position:fixed;right:12px;bottom:56px;z-index:2147483000;width:260px;max-width:calc(100vw - 24px);padding:14px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif');
+      adminBtn = el('button', 'position:fixed;left:12px;bottom:12px;z-index:2147483000;padding:8px 14px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif;cursor:pointer;opacity:.85', 'Admin');
+      adminPanel = el('div', 'display:none;position:fixed;left:12px;bottom:56px;z-index:2147483000;width:260px;max-width:calc(100vw - 24px);padding:14px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif');
       var users = el('button', bs, 'Users & sign-ins'); lockBtn = el('button', bs, ''); var out = el('button', bs + ';background:#555', 'Sign out');
       adminPanel.appendChild(el('div', 'font-weight:bold;margin-bottom:6px', 'Admin panel'));
       [users, lockBtn, out].forEach(function (b) { adminPanel.appendChild(b); });
@@ -164,6 +164,19 @@
     if (!token) { gate(ss(MSG) || ''); ss(MSG, null); return; }
     rpc('nova_check', { p_token: token }).then(function (r) {
       if (r && r.ok) {
+        window.novaAuth = {
+          user: r.user, admin: !!r.admin,
+          signOut: function () { ss(TOK, null); location.reload(); },
+          deleteAccount: function () {
+            if (r.admin) { alert('The admin account cannot be deleted.'); return; }
+            if (!confirm('Delete your account "' + r.user + '"? This cannot be undone.')) return;
+            var pw = prompt('Type your password to confirm:'); if (!pw) return;
+            rpc('nova_delete_self', { p_token: token, p_pass: pw }).then(function (d) {
+              if (d && d.ok) { ss(TOK, null); alert('Your account was deleted.'); location.reload(); }
+              else alert(d && d.error === 'bad' ? 'Wrong password.' : d && d.error === 'wait' ? 'Too many wrong tries. Wait 5 minutes.' : 'Could not delete the account.');
+            }).catch(function () { alert('Could not reach the server.'); });
+          }
+        };
         root.style.visibility = 'visible';
         if (r.admin) { locked = !!r.locked; ready(adminUI); }
         setInterval(recheck, 15000);
@@ -178,6 +191,22 @@
   var a = null;
   try { a = JSON.parse(sessionStorage.getItem(SESSION) || 'null'); } catch (e) {}
   if (a && a.exp * 1000 > Date.now()) {
+    window.novaAuth = {
+      user: a.user, admin: !!a.admin,
+      signOut: function () { try { sessionStorage.removeItem(SESSION); } catch (e) {} location.reload(); },
+      deleteAccount: function () {
+        if (a.admin) { alert('The admin account cannot be deleted.'); return; }
+        if (!confirm('Delete your account "' + a.user + '"? This cannot be undone.')) return;
+        var pw = prompt('Type your password to confirm:'); if (!pw) return;
+        var users = get(USERS) || {}, u = users[a.user];
+        if (!u) { alert('Account not found on this device.'); return; }
+        hash(u.salt, pw).then(function (h) {
+          if (h !== u.hash) { alert('Wrong password.'); return; }
+          delete users[a.user]; set(USERS, users);
+          try { sessionStorage.removeItem(SESSION); } catch (e) {} alert('Your account was deleted.'); location.reload();
+        });
+      }
+    };
     if (a.admin && a.user === ADMIN_USER) {
       var addBtn = function () { adminUI(); };
       if (document.body) addBtn(); else document.addEventListener('DOMContentLoaded', addBtn);
@@ -191,9 +220,9 @@
     if (document.getElementById('novaAdminBtn')) return;
     var b = document.createElement('button');
     b.id = 'novaAdminBtn'; b.textContent = 'Admin';
-    b.style.cssText = 'position:fixed;right:12px;bottom:12px;z-index:2147483000;padding:8px 14px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif;cursor:pointer;opacity:.85';
+    b.style.cssText = 'position:fixed;left:12px;bottom:12px;z-index:2147483000;padding:8px 14px;border-radius:8px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif;cursor:pointer;opacity:.85';
     var p = document.createElement('div');
-    p.style.cssText = 'display:none;position:fixed;right:12px;bottom:56px;z-index:2147483000;width:280px;max-width:calc(100vw - 24px);padding:14px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif';
+    p.style.cssText = 'display:none;position:fixed;left:12px;bottom:56px;z-index:2147483000;width:280px;max-width:calc(100vw - 24px);padding:14px;border-radius:10px;border:1px solid #444;background:#111;color:#fff;font:14px sans-serif';
     p.innerHTML = '<div style="font-weight:bold;margin-bottom:8px">Admin panel</div><p id="novaAdminBody" style="color:#aaa;margin:0 0 10px">Buttons coming soon.</p><button id="novaAdminOut" style="padding:8px 14px;border-radius:6px;border:0;background:#c33;color:#fff;cursor:pointer">Sign out</button>';
     b.onclick = function () { p.style.display = p.style.display === 'none' ? 'block' : 'none'; };
     document.body.appendChild(b); document.body.appendChild(p);
