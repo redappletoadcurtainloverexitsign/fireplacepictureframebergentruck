@@ -10,6 +10,7 @@ create table if not exists public.app_users (
   rec_hash text,
   is_admin boolean not null default false,
   deleted boolean not null default false,
+  lockdown_exempt boolean not null default false,
   created_at timestamptz not null default now(),
   last_login timestamptz,
   sign_in_count int not null default 0,
@@ -24,6 +25,7 @@ create table if not exists public.app_sessions (
 create table if not exists public.app_config (key text primary key, value text not null);
 insert into public.app_config values ('locked', 'false') on conflict do nothing;
 
+alter table public.app_users add column if not exists lockdown_exempt boolean not null default false;
 alter table public.app_users enable row level security;
 alter table public.app_sessions enable row level security;
 alter table public.app_config enable row level security;
@@ -79,7 +81,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'bad');
   end if;
   if r.deleted then return jsonb_build_object('ok', false, 'error', 'deleted'); end if;
-  if nova_is_locked() and not r.is_admin then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
+  if nova_is_locked() and not r.is_admin and not r.lockdown_exempt then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
   update app_users set last_login = now(), sign_in_count = sign_in_count + 1, fail_count = 0, locked_until = null where username = u;
   delete from app_sessions where created_at < now() - interval '7 days';
   insert into app_sessions (username) values (u) returning token into tok;
@@ -103,7 +105,7 @@ begin
     return jsonb_build_object('ok', false, 'error', 'badcode');
   end if;
   if r.deleted then return jsonb_build_object('ok', false, 'error', 'deleted'); end if;
-  if nova_is_locked() and not r.is_admin then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
+  if nova_is_locked() and not r.is_admin and not r.lockdown_exempt then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
   update app_users set pw_hash = crypt(p_pass, gen_salt('bf')), last_login = now(), sign_in_count = sign_in_count + 1, fail_count = 0, locked_until = null where username = u;
   insert into app_sessions (username) values (u) returning token into tok;
   return jsonb_build_object('ok', true, 'token', tok);
@@ -113,12 +115,12 @@ create or replace function public.nova_check(p_token uuid) returns jsonb
 language plpgsql security definer set search_path = public as $$
 declare r record;
 begin
-  select u.username, u.is_admin, u.deleted into r
+  select u.username, u.is_admin, u.deleted, u.lockdown_exempt into r
     from app_sessions s join app_users u on u.username = s.username
     where s.token = p_token and s.created_at > now() - interval '7 days';
   if not found then return jsonb_build_object('ok', false, 'error', 'invalid'); end if;
   if r.deleted then return jsonb_build_object('ok', false, 'error', 'deleted'); end if;
-  if nova_is_locked() and not r.is_admin then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
+  if nova_is_locked() and not r.is_admin and not r.lockdown_exempt then return jsonb_build_object('ok', false, 'error', 'locked'); end if;
   return jsonb_build_object('ok', true, 'admin', r.is_admin, 'user', r.username, 'locked', nova_is_locked());
 end $$;
 
@@ -135,7 +137,7 @@ begin
   if not nova_admin_ok(p_token) then return jsonb_build_object('ok', false, 'error', 'denied'); end if;
   return jsonb_build_object('ok', true, 'users', coalesce((
     select jsonb_agg(jsonb_build_object('username', username, 'created', created_at, 'last', last_login,
-      'count', sign_in_count, 'deleted', deleted, 'admin', is_admin) order by last_login desc nulls last)
+      'count', sign_in_count, 'deleted', deleted, 'admin', is_admin, 'exempt', lockdown_exempt) order by last_login desc nulls last)
     from app_users), '[]'::jsonb));
 end $$;
 
@@ -156,6 +158,27 @@ begin
   if not nova_admin_ok(p_token) then return jsonb_build_object('ok', false, 'error', 'denied'); end if;
   update app_config set value = case when p_locked then 'true' else 'false' end where key = 'locked';
   return jsonb_build_object('ok', true, 'locked', p_locked);
+end $$;
+
+create or replace function public.nova_admin_set_exempt(p_token uuid, p_user text, p_exempt boolean) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare u text := lower(trim(coalesce(p_user, '')));
+begin
+  if not nova_admin_ok(p_token) then return jsonb_build_object('ok', false, 'error', 'denied'); end if;
+  update app_users set lockdown_exempt = p_exempt where username = u and not is_admin;
+  return jsonb_build_object('ok', true);
+end $$;
+
+create or replace function public.nova_admin_purge(p_token uuid, p_user text) returns jsonb
+language plpgsql security definer set search_path = public as $$
+declare u text := lower(trim(coalesce(p_user, '')));
+begin
+  if not nova_admin_ok(p_token) then return jsonb_build_object('ok', false, 'error', 'denied'); end if;
+  if not exists (select 1 from app_users where username = u and deleted and not is_admin) then
+    return jsonb_build_object('ok', false, 'error', 'notdeleted');
+  end if;
+  delete from app_users where username = u;
+  return jsonb_build_object('ok', true);
 end $$;
 
 -- Only the functions are reachable from the website.
@@ -186,3 +209,5 @@ begin
   return jsonb_build_object('ok', true);
 end $$;
 grant execute on function public.nova_delete_self(uuid, text) to anon;
+
+grant execute on all functions in schema public to anon;

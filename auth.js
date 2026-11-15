@@ -133,18 +133,37 @@
           r.users.forEach(function (x) {
             var row = el('div', 'border:1px solid #333;border-radius:8px;padding:10px;margin:8px 0;display:flex;justify-content:space-between;gap:10px;align-items:center;flex-wrap:wrap');
             var left = el('div', 'min-width:200px');
-            left.appendChild(el('div', 'font-weight:bold;word-break:break-all', x.username + (x.admin ? '  (admin)' : '') + (x.deleted ? '  (deleted)' : '')));
+            left.appendChild(el('div', 'font-weight:bold;word-break:break-all', x.username + (x.admin ? '  (admin)' : '') + (x.exempt && !x.deleted ? '  (allowed during lockdown)' : '') + (x.deleted ? '  (deleted)' : '')));
             left.appendChild(el('div', 'color:#aaa', 'signed in ' + x.count + ' time(s)'));
             left.appendChild(el('div', 'color:#aaa', 'created ' + fmt(x.created)));
             left.appendChild(el('div', 'color:#aaa', 'last sign-in ' + fmt(x.last)));
             row.appendChild(left);
             if (!x.admin) {
-              var b = el('button', 'padding:8px 14px;border-radius:6px;border:0;color:#fff;cursor:pointer;background:' + (x.deleted ? '#2d6cff' : '#c33'), x.deleted ? 'Restore' : 'Delete');
+              var bw = el('div', 'display:flex;gap:8px;flex-wrap:wrap');
+              var bst = 'padding:8px 14px;border-radius:6px;border:0;color:#fff;cursor:pointer;background:';
+              var fail = function () { alert('Could not reach the server.'); };
+              var b = el('button', bst + (x.deleted ? '#2d6cff' : '#c33'), x.deleted ? 'Restore' : 'Delete');
               b.onclick = function () {
-                if (!x.deleted && !confirm('Delete the account "' + x.username + '"? They will be signed out and blocked.')) return;
-                rpc('nova_admin_set_deleted', { p_token: token, p_user: x.username, p_deleted: !x.deleted }).then(load).catch(function () { alert('Could not reach the server.'); });
+                if (!x.deleted && !confirm('Delete the account "' + x.username + '"? They will be signed out and blocked. You can restore it later.')) return;
+                rpc('nova_admin_set_deleted', { p_token: token, p_user: x.username, p_deleted: !x.deleted }).then(load).catch(fail);
               };
-              row.appendChild(b);
+              bw.appendChild(b);
+              if (x.deleted) {
+                var pb = el('button', bst + '#7a0f14', 'Delete forever');
+                pb.onclick = function () {
+                  if (!confirm('PERMANENTLY delete "' + x.username + '"? You will NOT be able to restore this account.')) return;
+                  if (!confirm('Last check: delete "' + x.username + '" forever?')) return;
+                  rpc('nova_admin_purge', { p_token: token, p_user: x.username }).then(function (r) { if (!r || !r.ok) alert('Could not delete the account.'); load(); }).catch(fail);
+                };
+                bw.appendChild(pb);
+              } else {
+                var eb = el('button', bst + (x.exempt ? '#555' : '#2a8a4a'), x.exempt ? 'Remove lockdown pass' : 'Allow during lockdown');
+                eb.onclick = function () {
+                  rpc('nova_admin_set_exempt', { p_token: token, p_user: x.username, p_exempt: !x.exempt }).then(load).catch(fail);
+                };
+                bw.appendChild(eb);
+              }
+              row.appendChild(bw);
             }
             list.appendChild(row);
           });
