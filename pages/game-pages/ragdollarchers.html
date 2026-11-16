@@ -48,19 +48,27 @@
         background: #444;
     }
 
+    .launcher { height: calc(100vh - 60px); display: flex; flex-direction: column; align-items: center; justify-content: center; color: #fff; font-family: sans-serif; text-align: center; padding: 16px; box-sizing: border-box; }
+    .launcher h1 { margin: 0 0 8px; font-size: 40px; }
+    .launcher p { margin: 6px 0; max-width: 460px; color: #ddd; }
+    .launcher .small { color: #888; font-size: 14px; }
+    .launcher .play { margin-top: 22px; padding: 14px 34px; border-radius: 10px; background: #2d6cff; color: #fff; font-size: 20px; text-decoration: none; }
+    .launcher .play:hover { background: #4a82ff; }
 </style>
 </head>
 <body>
 
-    <iframe id="gameEmbed" class="game-embed" src="https://www.crazygames.com/embed/ragdoll-archers" allow="fullscreen; autoplay; gamepad; clipboard-write" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+    <div class="launcher">
+      <h1>Ragdoll Archers</h1>
+      <p>A ragdoll archery duel: aim, shoot and outlast your opponent.</p>
+      <p class="small">This game is hosted by CrazyGames, so it opens in a new tab on their official page.</p>
+      <a class="play" href="https://www.crazygames.com/game/ragdoll-archers" target="_blank" rel="noopener">Play on CrazyGames</a>
+    </div>
     <div class="taskbar">
       <button onclick="window.location.href='../../select.html'">Back</button>
-      <button onclick="window.location.reload()">Restart</button>
-      <button onclick="window.open('https://www.crazygames.com/embed/ragdoll-archers','_blank')">Open in new tab</button>
-      <button onclick="goFullscreen()">Fullscreen</button>
     </div>
         <script>
-            document.querySelector('.game-embed').focus();
+            
         </script>
 
 <script>
@@ -111,5 +119,5 @@ function goFullscreen() {
           });
         </script>
 </body>
-<script src="../../auth.js?v=13"></script><script src="../../cloak.js"></script>
+<script src="../../auth.js?v=14"></script><script src="../../cloak.js"></script>
 </html>

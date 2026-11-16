@@ -11,7 +11,6 @@
   // ---------- Online mode (Supabase): shared accounts, sign-in tracking, delete, lockdown ----------
   function sbMode(API, KEY) {
     var root = document.documentElement;
-    root.style.visibility = 'hidden';
     var TOK = 'novaTok', MSG = 'novaMsg';
     var MSGS = {
       badname: 'Username: 3-20 letters, numbers or _ only.', badpass: 'Password must be 6-72 characters.',
@@ -180,7 +179,8 @@
       }).catch(function () {});
     }
     token = ss(TOK);
-    if (!token) { gate(ss(MSG) || ''); ss(MSG, null); return; }
+    if (!token) { root.style.visibility = 'hidden'; gate(ss(MSG) || ''); ss(MSG, null); return; }
+    // Signed-in visitors see the page right away; the server check runs in the background (faster game loading).
     rpc('nova_check', { p_token: token }).then(function (r) {
       if (r && r.ok) {
         window.novaAuth = {
